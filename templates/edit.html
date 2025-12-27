@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Task - To-Do App{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>✏️ Edit Task</h1>
+</div>
+
+<div style="background: var(--light); padding: 30px; border-radius: 12px;">
+    <form method="POST" action="{{ url_for('edit_task', task_id=task.id) }}">
+        <div class="form-row"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+            <div class="form-group">
+                <label for="title">Task Title *</label>
+                <input type="text" id="title" name="title" value="{{ task.title }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority">
+                    <option value="low" {% if task.priority=='low' %}selected{% endif %}>Low</option>
+                    <option value="medium" {% if task.priority=='medium' %}selected{% endif %}>Medium</option>
+                    <option value="high" {% if task.priority=='high' %}selected{% endif %}>High</option>
+                    <option value="urgent" {% if task.priority=='urgent' %}selected{% endif %}>Urgent</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="category_id">Category</label>
+                <select id="category_id" name="category_id">
+                    <option value="">No Category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if task.category_id==category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description">{{ task.description or '' }}</textarea>
+        </div>
+
+        <div class="form-row"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+            <div class="form-group">
+                <label for="tags">Tags (comma-separated)</label>
+                <input type="text" id="tags" name="tags" value="{{ task.tags or '' }}"
+                    placeholder="e.g., urgent, meeting, review">
+            </div>
+
+            <div class="form-group">
+                <label for="due_date">Due Date</label>
+                <input type="datetime-local" id="due_date" name="due_date"
+                    value="{% if task.due_date %}{{ task.due_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+            </div>
+
+            <div class="form-group">
+                <label for="reminder_date">Reminder</label>
+                <input type="datetime-local" id="reminder_date" name="reminder_date"
+                    value="{% if task.reminder_date %}{{ task.reminder_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" class="btn btn-primary">💾 Update Task</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .dark-mode div[style*="background: var(--light)"] {
+        background: #2d3748 !important;
+    }
+</style>
+{% endblock %}

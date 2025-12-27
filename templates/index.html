@@ -1,0 +1,662 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - To-Do App{% endblock %}
+
+{% block extra_css %}
+<style>
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        color: white;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-card h3 {
+        font-size: 36px;
+        margin-bottom: 5px;
+        font-weight: 700;
+    }
+
+    .stat-card p {
+        font-size: 13px;
+        opacity: 0.95;
+        font-weight: 500;
+    }
+
+    .pending-card {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    }
+
+    .working-card {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    }
+
+    .done-card {
+        background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    }
+
+    .urgent-card {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+
+    .high-card {
+        background: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%);
+    }
+
+    .overdue-card {
+        background: linear-gradient(135deg, #e83e8c 0%, #d63384 100%);
+    }
+
+    .filters-section {
+        background: var(--light);
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+
+    .dark-mode .filters-section {
+        background: #2d3748;
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .task-form {
+        background: var(--light);
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+
+    .dark-mode .task-form {
+        background: #2d3748;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .task-list {
+        margin-top: 20px;
+    }
+
+    .task-item {
+        background: var(--light);
+        padding: 20px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+        border-left: 5px solid var(--primary);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .dark-mode .task-item {
+        background: #2d3748;
+    }
+
+    .task-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px var(--shadow);
+    }
+
+    .task-item.pending {
+        border-left-color: #ffc107;
+    }
+
+    .task-item.working {
+        border-left-color: #17a2b8;
+    }
+
+    .task-item.done {
+        border-left-color: #28a745;
+        opacity: 0.7;
+    }
+
+    .task-item.priority-urgent {
+        border-left-width: 8px;
+    }
+
+    .task-item.priority-high {
+        border-left-width: 6px;
+    }
+
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+        gap: 15px;
+    }
+
+    .task-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text);
+        flex: 1;
+    }
+
+    .task-priority {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .priority-urgent {
+        background: #dc3545;
+        color: white;
+    }
+
+    .priority-high {
+        background: #fd7e14;
+        color: white;
+    }
+
+    .priority-medium {
+        background: #ffc107;
+        color: #333;
+    }
+
+    .priority-low {
+        background: #6c757d;
+        color: white;
+    }
+
+    .task-desc {
+        color: #666;
+        margin-bottom: 12px;
+        line-height: 1.6;
+    }
+
+    .dark-mode .task-desc {
+        color: #a0aec0;
+    }
+
+    .task-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border);
+    }
+
+    .task-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .task-status {
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-pending {
+        background: #ffc107;
+        color: #333;
+    }
+
+    .status-working {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .status-done {
+        background: #28a745;
+        color: white;
+    }
+
+    .task-category {
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .task-tag {
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 11px;
+        background: #e9ecef;
+        color: #495057;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .dark-mode .task-tag {
+        background: #4a5568;
+        color: #e2e8f0;
+    }
+
+    .task-date {
+        font-size: 12px;
+        color: #999;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .task-due {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-weight: 600;
+    }
+
+    .due-overdue {
+        background: #dc3545;
+        color: white;
+    }
+
+    .due-soon {
+        background: #ffc107;
+        color: #333;
+    }
+
+    .due-normal {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .export-section {
+        margin-top: 30px;
+        padding: 20px;
+        background: var(--light);
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .dark-mode .export-section {
+        background: #2d3748;
+    }
+
+    .no-tasks {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .no-tasks-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        .task-header {
+            flex-direction: column;
+        }
+
+        .task-meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .task-actions {
+            width: 100%;
+        }
+
+        .task-actions .btn {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>✅ My To-Do Dashboard</h1>
+    <div class="top-bar">
+        <div class="user-info">
+            <p>Welcome, <strong>{{ username }}</strong>!</p>
+            <a href="{{ url_for('manage_categories') }}" class="btn btn-info btn-small">📁 Categories</a>
+            <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+        </div>
+        <a href="{{ url_for('toggle_dark_mode') }}" class="dark-mode-toggle">
+            {% if dark_mode %}☀️ Light Mode{% else %}🌙 Dark Mode{% endif %}
+        </a>
+    </div>
+</div>
+
+<div class="stats">
+    <div class="stat-card pending-card" onclick="filterByStatus('pending')">
+        <h3>{{ pending }}</h3>
+        <p>📋 Pending</p>
+    </div>
+    <div class="stat-card working-card" onclick="filterByStatus('working')">
+        <h3>{{ working }}</h3>
+        <p>⚡ In Progress</p>
+    </div>
+    <div class="stat-card done-card" onclick="filterByStatus('done')">
+        <h3>{{ done }}</h3>
+        <p>✓ Completed</p>
+    </div>
+    <div class="stat-card urgent-card" onclick="filterByPriority('urgent')">
+        <h3>{{ priority_counts.urgent }}</h3>
+        <p>🔥 Urgent</p>
+    </div>
+    <div class="stat-card high-card" onclick="filterByPriority('high')">
+        <h3>{{ priority_counts.high }}</h3>
+        <p>⬆️ High Priority</p>
+    </div>
+    <div class="stat-card overdue-card">
+        <h3>{{ overdue }}</h3>
+        <p>⏰ Overdue</p>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="filters-section">
+    <h3 style="margin-bottom: 15px;">🔍 Search & Filter</h3>
+    <form method="GET" action="{{ url_for('index') }}">
+        <div class="filters-grid">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" name="search" placeholder="Search tasks..." value="{{ current_filters.search }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if current_filters.category==category.id|string %}selected{%
+                        endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="priority">
+                    <option value="">All Priorities</option>
+                    <option value="urgent" {% if current_filters.priority=='urgent' %}selected{% endif %}>Urgent
+                    </option>
+                    <option value="high" {% if current_filters.priority=='high' %}selected{% endif %}>High</option>
+                    <option value="medium" {% if current_filters.priority=='medium' %}selected{% endif %}>Medium
+                    </option>
+                    <option value="low" {% if current_filters.priority=='low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="status">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if current_filters.status=='pending' %}selected{% endif %}>Pending
+                    </option>
+                    <option value="working" {% if current_filters.status=='working' %}selected{% endif %}>Working
+                    </option>
+                    <option value="done" {% if current_filters.status=='done' %}selected{% endif %}>Done</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="tag">
+                    <option value="">All Tags</option>
+                    {% for tag in all_tags %}
+                    <option value="{{ tag }}" {% if current_filters.tag==tag %}selected{% endif %}>{{ tag }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="sort">
+                    <option value="created_desc" {% if current_filters.sort=='created_desc' %}selected{% endif %}>Newest
+                        First</option>
+                    <option value="created_asc" {% if current_filters.sort=='created_asc' %}selected{% endif %}>Oldest
+                        First</option>
+                    <option value="due_date" {% if current_filters.sort=='due_date' %}selected{% endif %}>Due Date
+                    </option>
+                    <option value="priority" {% if current_filters.sort=='priority' %}selected{% endif %}>Priority
+                    </option>
+                    <option value="title" {% if current_filters.sort=='title' %}selected{% endif %}>Title A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary btn-small">Apply Filters</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary btn-small">Clear All</a>
+        </div>
+    </form>
+</div>
+
+<!-- Add New Task -->
+<div class="task-form">
+    <h2 style="margin-bottom: 20px;">➕ Add New Task</h2>
+    <form method="POST" action="{{ url_for('add_task') }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="title">Task Title *</label>
+                <input type="text" id="title" name="title" required placeholder="Enter task title...">
+            </div>
+
+            <div class="form-group">
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="category_id">Category</label>
+                <select id="category_id" name="category_id">
+                    <option value="">No Category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description (Optional)</label>
+            <textarea id="description" name="description" placeholder="Add task details..."></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="tags">Tags (comma-separated)</label>
+                <input type="text" id="tags" name="tags" placeholder="e.g., urgent, meeting, review">
+            </div>
+
+            <div class="form-group">
+                <label for="due_date">Due Date</label>
+                <input type="datetime-local" id="due_date" name="due_date">
+            </div>
+
+            <div class="form-group">
+                <label for="reminder_date">Reminder</label>
+                <input type="datetime-local" id="reminder_date" name="reminder_date">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Task</button>
+    </form>
+</div>
+
+<!-- Task List -->
+<div class="task-list">
+    <h2 style="margin-bottom: 20px;">📋 Your Tasks ({{ tasks|length }})</h2>
+
+    {% if tasks %}
+    {% for task in tasks %}
+    <div class="task-item {{ task.status }} priority-{{ task.priority }}">
+        <div class="task-header">
+            <div class="task-title">{{ task.title }}</div>
+            <span class="task-priority priority-{{ task.priority }}">{{ task.priority }}</span>
+        </div>
+
+        {% if task.description %}
+        <div class="task-desc">{{ task.description }}</div>
+        {% endif %}
+
+        <div class="task-info">
+            {% if task.category %}
+            <span class="task-category" style="background-color: {{ task.category.color }};">
+                {{ task.category.name }}
+            </span>
+            {% endif %}
+
+            {% if task.tags %}
+            {% for tag in task.tags.split(',') %}
+            <span class="task-tag">🏷️ {{ tag.strip() }}</span>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="task-meta">
+            <div class="task-info">
+                <span class="task-status status-{{ task.status }}">{{ task.status }}</span>
+                <span class="task-date">📅 {{ task.created_at.strftime('%d %b %Y') }}</span>
+
+                {% if task.due_date %}
+                {% set now = None %}
+                {% set now = task.created_at.__class__.utcnow() %}
+                {% if task.due_date < now and task.status !='done' %} <span class="task-due due-overdue">⏰
+                    Overdue!</span>
+                    {% elif (task.due_date - now).days <= 2 and task.status !='done' %} <span class="task-due due-soon">
+                        ⏰ Due: {{ task.due_date.strftime('%d %b') }}</span>
+                        {% else %}
+                        <span class="task-due due-normal">📆 Due: {{ task.due_date.strftime('%d %b') }}</span>
+                        {% endif %}
+                        {% endif %}
+
+                        {% if task.reminder_date %}
+                        <span class="task-date">🔔 Reminder set</span>
+                        {% endif %}
+            </div>
+
+            <div class="task-actions">
+                {% if task.status != 'pending' %}
+                <a href="{{ url_for('update_status', task_id=task.id, status='pending') }}"
+                    class="btn btn-warning btn-small">Pending</a>
+                {% endif %}
+
+                {% if task.status != 'working' %}
+                <a href="{{ url_for('update_status', task_id=task.id, status='working') }}"
+                    class="btn btn-primary btn-small">Working</a>
+                {% endif %}
+
+                {% if task.status != 'done' %}
+                <a href="{{ url_for('update_status', task_id=task.id, status='done') }}"
+                    class="btn btn-success btn-small">Done</a>
+                {% endif %}
+
+                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-secondary btn-small">✏️ Edit</a>
+
+                <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn btn-danger btn-small"
+                    onclick="return confirm('Delete this task?')">🗑️ Delete</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="no-tasks">
+        <div class="no-tasks-icon">📝</div>
+        <h3>No tasks found</h3>
+        <p>{% if current_filters.search or current_filters.category or current_filters.priority or
+            current_filters.status or current_filters.tag %}
+            Try adjusting your filters or <a href="{{ url_for('index') }}">clear all filters</a>
+            {% else %}
+            Add your first task above to get started!
+            {% endif %}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Export Section -->
+<div class="export-section">
+    <h3 style="margin-bottom: 15px;">📤 Export Your Tasks</h3>
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <a href="{{ url_for('export_csv') }}" class="btn btn-success">Export as CSV</a>
+        <a href="{{ url_for('export_json') }}" class="btn btn-info">Export as JSON</a>
+    </div>
+</div>
+
+<script>
+    function filterByStatus(status) {
+        window.location.href = '{{ url_for("index") }}?status=' + status;
+    }
+
+    function filterByPriority(priority) {
+        window.location.href = '{{ url_for("index") }}?priority=' + priority;
+    }
+
+    // Check for reminders
+    function checkReminders() {
+        fetch('{{ url_for("get_reminders") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    console.log('Upcoming reminders:', data);
+                    // You can add notification logic here
+                }
+            })
+            .catch(error => console.error('Error checking reminders:', error));
+    }
+
+    // Check reminders every 5 minutes
+    setInterval(checkReminders, 300000);
+    checkReminders();
+</script>
+{% endblock %}
