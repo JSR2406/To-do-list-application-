@@ -7,8 +7,12 @@ import io
 import json
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db'
+import os
+
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
+# Use /tmp/ directory for SQLite in Vercel (writable location)
+# Note: Data in /tmp/ is ephemeral and will be lost when function restarts
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/todo.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
